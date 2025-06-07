@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Texas Child Support Calculator (Corrected Automated Taxes)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .info-tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .info-tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+        }
+        .info-tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+        .info-tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-sky-100 via-indigo-50 to-purple-100 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-indigo-500 selection:text-white">
+
+    <div class="bg-white shadow-2xl rounded-xl p-6 md:p-10 w-full max-w-3xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-indigo-700">Texas Child Support Calculator</h1>
+            <p class="text-gray-600 mt-2 text-sm md:text-base">With Corrected Automated Tax Calculation (2025 OAG Guidelines)</p>
+        </header>
+
+        <form id="supportForm" class="space-y-6">
+            <section>
+                <h2 class="text-xl font-semibold text-indigo-600 mb-3 border-b pb-2">Obligor's Monthly Income & Deductions</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+                    <div class="md:col-span-2">
+                        <label for="grossMonthlyIncome" class="block text-sm font-medium text-gray-700">
+                            Gross Monthly Income
+                            <span class="info-tooltip text-indigo-500">(?)
+                                <span class="tooltiptext">Total income from all sources before any deductions (wages, self-employment, bonuses, etc.).</span>
+                            </span>
+                        </label>
+                        <input type="number" id="grossMonthlyIncome" placeholder="e.g., 3000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                    </div>
+                     <div class="md:col-span-2 flex items-center space-x-2">
+                        <input id="isSelfEmployed" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <label for="isSelfEmployed" class="text-sm font-medium text-gray-700">
+                            Is the obligor self-employed?
+                            <span class="info-tooltip text-indigo-500">(?)
+                                <span class="tooltiptext">Check this box if the paying parent is self-employed. This affects how Social Security/Medicare taxes are calculated.</span>
+                            </span>
+                        </label>
+                    </div>
+                    <div>
+                        <label for="stateIncomeTax" class="block text-sm font-medium text-gray-700">
+                            State Income Tax Paid Monthly (if any)
+                            <span class="info-tooltip text-indigo-500">(?)
+                                <span class="tooltiptext">Texas has no state income tax. Enter if income is earned in a state with income tax.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="stateIncomeTax" placeholder="e.g., 0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" value="0">
+                    </div>
+                    <div>
+                        <label for="unionDues" class="block text-sm font-medium text-gray-700">
+                            Mandatory Union Dues Paid Monthly
+                             <span class="info-tooltip text-indigo-500">(?)
+                                <span class="tooltiptext">Only enter if union membership and dues are a condition of employment.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="unionDues" placeholder="e.g., 0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" value="0">
+                    </div>
+                    <div>
+                        <label for="childHealthInsurance" class="block text-sm font-medium text-gray-700">
+                            Child(ren)'s Health Insurance Premium Paid Monthly
+                            <span class="info-tooltip text-indigo-500">(?)
+                                <span class="tooltiptext">Portion of health insurance premium specifically for the child(ren) in this case.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="childHealthInsurance" placeholder="e.g., 209.22" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                    </div>
+                     <div>
+                        <label for="childDentalInsurance" class="block text-sm font-medium text-gray-700">
+                            Child(ren)'s Dental Insurance Premium Paid Monthly
+                            <span class="info-tooltip text-indigo-500">(?)
+                                <span class="tooltiptext">Portion of dental insurance premium specifically for the child(ren) in this case (if separate).</span>
+                            </span>
+                        </label>
+                        <input type="number" id="childDentalInsurance" placeholder="e.g., 0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" value="0">
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-xl font-semibold text-indigo-600 mb-3 border-b pb-2">Children Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="childrenInCase" class="block text-sm font-medium text-gray-700">
+                            Number of Children in This Case
+                            <span class="info-tooltip text-indigo-500">(?)
+                                <span class="tooltiptext">Number of children for whom support is being calculated in the current legal action.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="childrenInCase" min="1" placeholder="e.g., 1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                    </div>
+                    <div>
+                        <label for="otherChildren" class="block text-sm font-medium text-gray-700">
+                            Number of Other Children Obligor Supports
+                            <span class="info-tooltip text-indigo-500">(?)
+                                <span class="tooltiptext">Number of other children (not in this case) for whom the obligor has a legal duty of support (e.g., from a different relationship).</span>
+                            </span>
+                        </label>
+                        <input type="number" id="otherChildren" min="0" placeholder="e.g., 0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" value="0">
+                    </div>
+                </div>
+            </section>
+
+            <div class="flex justify-center mt-8">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                    Calculate Support
+                </button>
+            </div>
+        </form>
+
+        <div id="results" class="mt-10 p-6 bg-indigo-50 rounded-lg shadow hidden">
+            <h2 class="text-2xl font-semibold text-indigo-700 mb-4 text-center">Estimated Calculation Breakdown</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-gray-700 text-sm md:text-base">
+                <p><strong>Gross Monthly Income:</strong> <span id="resultGMI" class="float-right font-mono"></span></p>
+                <p><strong>Calculated FICA Tax:</strong> <span id="resultFICATax" class="float-right font-mono"></span></p>
+                <p><strong>Calculated Federal Income Tax:</strong> <span id="resultFedTax" class="float-right font-mono"></span></p>
+                <p><strong>Other Deductions (Manual):</strong> <span id="resultOtherDeductions" class="float-right font-mono"></span></p>
+                <hr class="md:col-span-2 my-1 border-indigo-200">
+                <p class="font-bold"><strong>Net Monthly Income (NMI):</strong> <span id="resultNMI" class="float-right font-mono"></span></p>
+                 <p class="font-bold"><strong>Effective NMI for Calculation:</strong> <span id="resultEffectiveNMI" class="float-right font-mono"></span></p>
+                 <hr class="md:col-span-2 my-1 border-indigo-200">
+                <p><strong>Number of Children in Case:</strong> <span id="resultNumChildren" class="float-right font-mono"></span></p>
+                <p><strong>Number of Other Supported Children:</strong> <span id="resultOtherChildren" class="float-right font-mono"></span></p>
+                <p><strong>Applicable Support Percentage:</strong> <span id="resultPercentage" class="float-right font-mono"></span></p>
+                <div class="md:col-span-2 mt-4 pt-4 border-t-2 border-indigo-300">
+                    <p class="text-xl md:text-2xl font-bold text-indigo-700 text-center">
+                        Estimated Monthly Child Support: $<span id="resultSupportAmount" class="text-green-600"></span>
+                    </p>
+                </div>
+            </div>
+             <p class="text-center italic text-xs mt-4 text-gray-500">Note: NMI for calculation is capped at $9,200. If actual NMI is higher, calculation uses $9,200.</p>
+        </div>
+        
+        <div id="errorMessage" class="mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg shadow hidden text-sm">
+            <p id="errorText"></p>
+        </div>
+
+        <footer class="mt-10 text-center text-xs text-gray-500">
+            <p><strong>Disclaimer:</strong> This calculator provides an estimate for informational purposes only and is not legal advice. The actual child support amount can be different based on a court order and specific circumstances. Consult with a qualified attorney for legal advice regarding your situation. Tax calculations are based on the 2025 OAG Tax Charts for a single individual with one exemption (Gross Pay MINUS $1244.00 = Adjusted Gross Pay for Federal Income Tax calculation).</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- DATA FROM 2025 OAG TAX CHARTS ---
+        // Standard percentages for Net Monthly Income (NMI) > $1000
+        const standardPercentages = {
+            1: [0.2000, 0.1750, 0.1600, 0.1475, 0.1360, 0.1250, 0.1142, 0.1035],
+            2: [0.2500, 0.2250, 0.2063, 0.1900, 0.1750, 0.1600, 0.1450, 0.1300],
+            3: [0.3000, 0.2750, 0.2513, 0.2325, 0.2150, 0.1980, 0.1810, 0.1640],
+            4: [0.3500, 0.3250, 0.2975, 0.2750, 0.2538, 0.2340, 0.2140, 0.1940],
+            5: [0.4000, 0.3750, 0.3438, 0.3175, 0.2925, 0.2690, 0.2460, 0.2230],
+            6: [0.4000, 0.3750, 0.3438, 0.3175, 0.2925, 0.2690, 0.2460, 0.2230]
+        };
+        // Low income percentages for Net Monthly Income (NMI) <= $1000
+        const lowIncomePercentages = {
+            1: [0.1500, 0.1250, 0.1125, 0.1013, 0.0900, 0.0800, 0.0713, 0.0625],
+            2: [0.2000, 0.1750, 0.1563, 0.1400, 0.1250, 0.1100, 0.0963, 0.0825],
+            3: [0.2500, 0.2250, 0.2013, 0.1825, 0.1650, 0.1480, 0.1313, 0.1145],
+            4: [0.3000, 0.2750, 0.2513, 0.2275, 0.2050, 0.1840, 0.1638, 0.1435],
+            5: [0.3500, 0.3250, 0.2975, 0.2725, 0.2488, 0.2260, 0.2038, 0.1815],
+            6: [0.3500, 0.3250, 0.2975, 0.2725, 0.2488, 0.2260, 0.2038, 0.1815]
+        };
+        const NMI_CAP = 9200;
+        const LOW_INCOME_THRESHOLD = 1000;
+        const FEDERAL_AGP_ADJUSTMENT = 1244.00; // Amount to subtract from GMI for Federal Income Tax calculation
+
+        // --- DOM Elements ---
+        const supportForm = document.getElementById('supportForm');
+        const resultsDiv = document.getElementById('results');
+        const errorMessageDiv = document.getElementById('errorMessage');
+        const errorTextP = document.getElementById('errorText');
+        
+        // --- Tax Calculation Function (based on 2025 OAG Chart) ---
+        function calculateTaxes(gmi, isSelfEmployed) {
+            let socialSecurityTax = 0;
+            let federalIncomeTax = 0;
+
+            if (gmi <= 0) return { socialSecurityTax: 0, federalIncomeTax: 0 };
+            
+            // 1. Calculate Social Security & Medicare (FICA)
+            // This is based on the Gross Monthly Income (gmi)
+            if (isSelfEmployed) {
+                // Self-Employment Tax is 15.3% on 92.35% of net earnings from self-employment
+                const netEarnings = gmi * 0.9235;
+                socialSecurityTax = netEarnings * 0.153;
+            } else {
+                // Standard Employee FICA is 7.65% of gmi
+                socialSecurityTax = gmi * 0.0765;
+            }
+
+            // 2. Calculate Federal Income Tax (based on OAG Monthly chart for SINGLE, 1 allowance)
+            // First, calculate Adjusted Gross Pay (AGP) by subtracting the standard allowance
+            let adjustedGrossPay = gmi - FEDERAL_AGP_ADJUSTMENT;
+            if (adjustedGrossPay < 0) {
+                adjustedGrossPay = 0; // AGP cannot be negative for tax calculation
+            }
+
+            // Then, apply tax brackets to the calculated adjustedGrossPay
+            if (adjustedGrossPay > 21110) { federalIncomeTax = 5874.94 + (adjustedGrossPay - 21110) * 0.37; }
+            else if (adjustedGrossPay > 16552) { federalIncomeTax = 4279.64 + (adjustedGrossPay - 16552) * 0.35; }
+            else if (adjustedGrossPay > 8506) { federalIncomeTax = 1704.92 + (adjustedGrossPay - 8506) * 0.32; }
+            else if (adjustedGrossPay > 4354) { federalIncomeTax = 718.44 + (adjustedGrossPay - 4354) * 0.24; } // Typo corrected
+            else if (adjustedGrossPay > 2096) { federalIncomeTax = 221.68 + (adjustedGrossPay - 2096) * 0.22; }
+            else if (adjustedGrossPay > 602) { federalIncomeTax = 42.40 + (adjustedGrossPay - 602) * 0.12; }
+            else if (adjustedGrossPay > 178) { federalIncomeTax = (adjustedGrossPay - 178) * 0.10; }
+            else { federalIncomeTax = 0; }
+            
+            if (federalIncomeTax < 0) federalIncomeTax = 0; // Tax cannot be negative
+
+            return { socialSecurityTax, federalIncomeTax };
+        }
+
+        // --- Main Form Submission Handler ---
+        supportForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            clearPreviousResults();
+
+            // Get and parse input values
+            const gmi = parseFloat(document.getElementById('grossMonthlyIncome').value) || 0;
+            const isSelfEmployed = document.getElementById('isSelfEmployed').checked;
+            const stateTaxes = parseFloat(document.getElementById('stateIncomeTax').value) || 0;
+            const unionDues = parseFloat(document.getElementById('unionDues').value) || 0;
+            const healthIns = parseFloat(document.getElementById('childHealthInsurance').value) || 0;
+            const dentalIns = parseFloat(document.getElementById('childDentalInsurance').value) || 0;
+            
+            let childrenInCase = parseInt(document.getElementById('childrenInCase').value);
+            let otherChildren = parseInt(document.getElementById('otherChildren').value);
+
+            // Basic Validation
+            if (gmi <= 0) {
+                showError("Please enter a valid Gross Monthly Income (must be positive).");
+                return;
+            }
+            if (isNaN(childrenInCase) || childrenInCase < 1) {
+                showError("Please enter a valid number of children in this case (at least 1).");
+                return;
+            }
+            if (isNaN(otherChildren) || otherChildren < 0) {
+                showError("Please enter a valid number of other children supported (0 or more).");
+                return;
+            }
+            
+            // 1. Calculate Taxes (FICA and Federal Income Tax)
+            const taxes = calculateTaxes(gmi, isSelfEmployed);
+
+            // 2. Calculate Total Deductions
+            // 'Other Deductions' are those manually entered by the user
+            const manuallyEnteredOtherDeductions = stateTaxes + unionDues + healthIns + dentalIns;
+            const totalDeductions = taxes.socialSecurityTax + taxes.federalIncomeTax + manuallyEnteredOtherDeductions;
+
+            // 3. Calculate Net Monthly Income (NMI)
+            let nmi = gmi - totalDeductions;
+            if (nmi < 0) nmi = 0; // NMI cannot be negative for calculation purposes
+
+            // 4. Apply NMI cap for child support calculation
+            const effectiveNMI = Math.min(nmi, NMI_CAP);
+
+            // 5. Determine which percentage table to use based on actual NMI
+            const percentageTable = (nmi <= LOW_INCOME_THRESHOLD) ? lowIncomePercentages : standardPercentages;
+            
+            // 6. Get the percentage based on children counts
+            const tableChildrenInCase = Math.min(childrenInCase, 6); // Max 6 for rows
+            const tableOtherChildren = Math.min(otherChildren, 7);   // Max 7 for columns
+            
+            let percentage = 0;
+            if (percentageTable[tableChildrenInCase] && typeof percentageTable[tableChildrenInCase][tableOtherChildren] !== 'undefined') {
+                percentage = percentageTable[tableChildrenInCase][tableOtherChildren];
+            } else {
+                // Fallback if somehow the table structure isn't matched (should not happen with current logic)
+                percentage = percentageTable[tableChildrenInCase] ? percentageTable[tableChildrenInCase][0] : 0;
+                console.warn("Could not find specific percentage, used fallback for 0 other children.");
+            }
+            
+            // 7. Calculate final child support amount
+            const childSupportAmount = effectiveNMI * percentage;
+
+            // 8. Display results
+            document.getElementById('resultGMI').textContent = `$${gmi.toFixed(2)}`;
+            document.getElementById('resultFICATax').textContent = `-$${taxes.socialSecurityTax.toFixed(2)}`;
+            document.getElementById('resultFedTax').textContent = `-$${taxes.federalIncomeTax.toFixed(2)}`;
+            document.getElementById('resultOtherDeductions').textContent = `-$${manuallyEnteredOtherDeductions.toFixed(2)}`;
+            document.getElementById('resultNMI').textContent = `$${nmi.toFixed(2)}`;
+            document.getElementById('resultEffectiveNMI').textContent = `$${effectiveNMI.toFixed(2)}`;
+            document.getElementById('resultNumChildren').textContent = childrenInCase;
+            document.getElementById('resultOtherChildren').textContent = otherChildren;
+            document.getElementById('resultPercentage').textContent = `${(percentage * 100).toFixed(2)}%`;
+            document.getElementById('resultSupportAmount').textContent = childSupportAmount.toFixed(2);
+
+            resultsDiv.classList.remove('hidden');
+        });
+
+        function clearPreviousResults() {
+            resultsDiv.classList.add('hidden');
+            errorMessageDiv.classList.add('hidden');
+            errorTextP.textContent = '';
+        }
+
+        function showError(message) {
+            errorTextP.textContent = message;
+            errorMessageDiv.classList.remove('hidden');
+            resultsDiv.classList.add('hidden'); // Hide results if error occurs
+        }
+
+        // Add listeners to clear errors when user types/changes inputs
+        const inputs = document.querySelectorAll('#supportForm input');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => { // 'input' event covers typing and checkbox changes
+                if (!errorMessageDiv.classList.contains('hidden')) {
+                    errorMessageDiv.classList.add('hidden');
+                    errorTextP.textContent = '';
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
